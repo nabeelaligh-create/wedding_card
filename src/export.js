@@ -1,0 +1,30 @@
+import {dimensions,safeFilename} from './data.js';
+import {drawPage,drawTimeline,readyImages,assetMedia,totalDuration} from './render.js';
+import {createMusicSession} from './music.js';
+export function download(blob,name){const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);}
+const crcTable=Uint32Array.from({length:256},(_,i)=>{let c=i;for(let k=0;k<8;k++)c=c&1?0xedb88320^(c>>>1):c>>>1;return c>>>0;});
+export function crc32(bytes){let c=0xffffffff;for(const b of bytes)c=crcTable[(c^b)&255]^(c>>>8);return (c^0xffffffff)>>>0;}
+// Uncompressed ZIP: files are already compressed PNG, JPEG or video data.
+export async function makeZip(files){const chunks=[],central=[];let offset=0,centralSize=0;const encode=new TextEncoder();
+  for(const file of files){const name=encode.encode(file.name),data=new Uint8Array(await file.blob.arrayBuffer()),crc=crc32(data);const header=new Uint8Array(30+name.length),view=new DataView(header.buffer);view.setUint32(0,0x04034b50,true);view.setUint16(4,20,true);view.setUint16(6,0x0800,true);view.setUint32(14,crc,true);view.setUint32(18,data.length,true);view.setUint32(22,data.length,true);view.setUint16(26,name.length,true);header.set(name,30);chunks.push(header,data);
+    const c=new Uint8Array(46+name.length),cv=new DataView(c.buffer);cv.setUint32(0,0x02014b50,true);cv.setUint16(4,20,true);cv.setUint16(6,20,true);cv.setUint16(8,0x0800,true);cv.setUint32(16,crc,true);cv.setUint32(20,data.length,true);cv.setUint32(24,data.length,true);cv.setUint16(28,name.length,true);cv.setUint32(42,offset,true);c.set(name,46);central.push(c);centralSize+=c.length;offset+=header.length+data.length;}
+  const end=new Uint8Array(22),ev=new DataView(end.buffer);ev.setUint32(0,0x06054b50,true);ev.setUint16(8,files.length,true);ev.setUint16(10,files.length,true);ev.setUint32(12,centralSize,true);ev.setUint32(16,offset,true);return new Blob([...chunks,...central,end],{type:'application/zip'});
+}
+export function supportedVideoType(){if(!globalThis.MediaRecorder)return null;return ['video/mp4;codecs=avc1.42001E,mp4a.40.2','video/mp4','video/webm;codecs=vp9,opus','video/webm;codecs=vp8,opus','video/webm'].find(type=>MediaRecorder.isTypeSupported(type))||null;}
+export function canvasBlob(canvas,type='image/png'){return new Promise((resolve,reject)=>canvas.toBlob(blob=>blob?resolve(blob):reject(new Error('This browser could not export the image. Try a lower resolution.')),type,.95));}
+export async function exportImages(project,{width=1080,format='png',guest=null,pages=project.pages}={}){await readyImages(project);const files=[];const canvas=document.createElement('canvas');for(const [i,p] of pages.entries()){drawPage(canvas,project,p,{width,time:1.2,guest});files.push({name:`${String(i+1).padStart(2,'0')}-${safeFilename(p.name)}.${format==='jpeg'?'jpg':'png'}`,blob:await canvasBlob(canvas,format==='jpeg'?'image/jpeg':'image/png')});}return files;}
+export async function exportVideo(project,{width=1080,guest=null,signal,onProgress=()=>{}}={}){
+  const mimeType=supportedVideoType();if(!mimeType||!HTMLCanvasElement.prototype.captureStream)throw new Error('Video recording is unavailable in this browser. Use a current Chrome, Edge, Firefox or Safari, or export images.');
+  await readyImages(project);const duration=totalDuration(project),canvas=document.createElement('canvas');const {height}=dimensions(project.aspect,width);canvas.width=width;canvas.height=height;let stream,music,recorder,timer;const videos=[...new Set(project.pages.map(p=>assetMedia.get(p.mediaId)).filter(Boolean))];
+  try{if(signal?.aborted)throw new DOMException('Export cancelled','AbortError');onProgress(0,'Preparing music…');music=await createMusicSession(project,duration);if(signal?.aborted)throw new DOMException('Export cancelled','AbortError');
+    for(const v of videos){v.currentTime=0;await v.play();}drawTimeline(canvas,project,0,{width,guest});stream=canvas.captureStream(30);music?.stream.getAudioTracks().forEach(t=>stream.addTrack(t));
+    recorder=new MediaRecorder(stream,{mimeType,videoBitsPerSecond:width>=1080?8000000:4000000,audioBitsPerSecond:128000});const chunks=[];
+    return await new Promise((resolve,reject)=>{let settled=false,stopReason=null;const finishError=e=>{if(settled)return;stopReason=e;if(recorder.state==='recording')recorder.stop();else{settled=true;reject(e);}};
+      const onAbort=()=>finishError(new DOMException('Export cancelled','AbortError'));const onVisibility=()=>{if(document.hidden)finishError(new Error('Export paused because the tab was hidden. Keep this tab visible and try again.'));};signal?.addEventListener('abort',onAbort,{once:true});document.addEventListener('visibilitychange',onVisibility);
+      const cleanListeners=()=>{signal?.removeEventListener('abort',onAbort);document.removeEventListener('visibilitychange',onVisibility);clearTimeout(timer);};
+      recorder.ondataavailable=e=>{if(e.data.size)chunks.push(e.data);};recorder.onerror=e=>finishError(e.error||new Error('Video recording failed. Try a lower resolution.'));
+      recorder.onstop=()=>{cleanListeners();if(settled)return;settled=true;if(stopReason)reject(stopReason);else if(!chunks.length)reject(new Error('The recorder returned an empty video. Try a lower resolution.'));else resolve({blob:new Blob(chunks,{type:recorder.mimeType}),extension:recorder.mimeType.includes('mp4')?'mp4':'webm'});};
+      recorder.start(250);music?.start();const start=performance.now();const tick=()=>{if(settled||recorder.state!=='recording')return;const elapsed=Math.min(duration,(performance.now()-start)/1000);try{drawTimeline(canvas,project,elapsed,{width,guest});onProgress(elapsed/duration,`Rendering ${Math.ceil(elapsed)} of ${duration} seconds…`);}catch(e){finishError(e);return;}if(elapsed>=duration){recorder.stop();return;}timer=setTimeout(tick,1000/30);};tick();
+    });
+  }finally{clearTimeout(timer);if(recorder?.state==='recording')recorder.stop();stream?.getTracks().forEach(t=>t.stop());await music?.stop();videos.forEach(v=>v.pause());}
+}
