@@ -98,7 +98,13 @@ export function hitTest(bounds,x,y){return [...bounds].reverse().find(b=>x>=b.x&
 export function totalDuration(project){return project.pages.reduce((sum,p)=>sum+p.duration,0);}
 export function pageAtTime(project,seconds){let start=0;for(let i=0;i<project.pages.length;i++){const p=project.pages[i];if(seconds<start+p.duration||i===project.pages.length-1)return {page:p,index:i,time:Math.max(0,seconds-start),start};start+=p.duration;}return null;}
 export function drawTimeline(canvas,project,seconds,{width=1080,guest=null}={}){
-  const point=pageAtTime(project,seconds);drawPage(canvas,project,point.page,{width,time:point.time,guest});
+  const point=pageAtTime(project,seconds);
+  // A page revealed by a transition is already visible at the page boundary.
+  // Keep its entrance complete afterwards so its text does not disappear and
+  // animate a second time when the next page becomes current.
+  const previous=project.pages[point.index-1];
+  const enteredThroughTransition=previous&&(previous.transition==='fade'||previous.transition==='slide');
+  drawPage(canvas,project,point.page,{width,time:point.time+(enteredThroughTransition?1.1:0),guest});
   const transition=point.page.transition;const remaining=point.page.duration-point.time;if(remaining<.65&&point.index<project.pages.length-1&&transition!=='none'){
     const next=document.createElement('canvas');drawPage(next,project,project.pages[point.index+1],{width,time:1.1,guest});const ctx=canvas.getContext('2d');ctx.save();ctx.setTransform(1,0,0,1,0,0);const progress=1-remaining/.65;if(transition==='fade'){ctx.globalAlpha=progress;ctx.drawImage(next,0,0);}else ctx.drawImage(next,canvas.width*(1-progress),0);ctx.restore();
   }return point;
