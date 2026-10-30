@@ -23,6 +23,19 @@ export function applyArtwork(page,asset){
 export function setTextVisibility(page,visible){page.blocks.forEach(b=>{b.hidden=!visible;});}
 export const uid=()=>globalThis.crypto?.randomUUID?.() || `id-${Date.now()}-${Math.random().toString(36).slice(2)}`;
 export const clone=value=>JSON.parse(JSON.stringify(value));
+// Shared design edits target stable page IDs, including after pages are reordered.
+export function applyPageStyles(project,pageIds,styles){
+  const ids=new Set(pageIds);
+  for(const p of project.pages){
+    if(!ids.has(p.id))continue;
+    for(const key of ['background','ink','accent','border','ornament','animation'])if(Object.hasOwn(styles,key))p[key]=styles[key];
+    for(const b of p.blocks){
+      if(b.hidden)continue;
+      if(['serif','sans','script'].includes(styles.font)&&b.font!=='arabic'&&!/[\u0600-\u06ff]/.test(b.text))b.font=styles.font;
+      if(Number.isFinite(styles.sizeFactor)&&styles.sizeFactor>0)b.size=Math.min(160,Math.max(8,Math.round(b.size*styles.sizeFactor*10)/10));
+    }
+  }
+}
 export const escapeHTML=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 export function block(key,text,y,size,style='normal',extra={}){return {id:uid(),key,text,x:.5,y,size,style,font:'serif',align:'center',color:'',width:.73,...extra};}
 export function newPage(template='gulmohar',kind='invitation') {

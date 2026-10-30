@@ -56,7 +56,7 @@ function decoration(ctx,p,w,h,t=0){const {accent,ink}=p;if(p.decoration==='royal
     for(let i=0;i<9;i++)flower(ctx,w*(.03+i*.117),h*.98,radius*.026,accent);
   }
   if(p.decoration==='celestial'){ctx.fillStyle=accent;for(let i=0;i<65;i++){const x=((i*337+19)%997)/997*w,y=((i*211+87)%991)/991*h;if(x>w*.19&&x<w*.81&&y>h*.2&&y<h*.93)continue;ctx.globalAlpha=.3+(Math.sin(t*.7+i)+1)*.25;ctx.beginPath();ctx.arc(x,y,(i%3+1)*.65,0,Math.PI*2);ctx.fill();}ctx.globalAlpha=1;const cy=hasBlessingHeading(p)?h*.1:h*.145,r=Math.min(w,h)*.032;ctx.beginPath();ctx.arc(w*.5,cy,r,0,Math.PI*2);ctx.fill();ctx.fillStyle=p.background;ctx.beginPath();ctx.arc(w*.5+r*.375,cy-r*.28,r*.9375,0,Math.PI*2);ctx.fill();}
-  if(p.decoration==='arches'){ctx.save();ctx.strokeStyle=accent;ctx.globalAlpha=.5;for(let i=0;i<4;i++){const pad=w*(.04+i*.013);ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(pad,h);ctx.lineTo(pad,w*.55);ctx.bezierCurveTo(pad,-w*.06,w-pad,-w*.06,w-pad,w*.55);ctx.lineTo(w-pad,h);ctx.stroke();}ctx.restore();}
+  if(p.decoration==='arches'&&p.border){ctx.save();ctx.strokeStyle=accent;ctx.globalAlpha=.5;for(let i=0;i<4;i++){const pad=w*(.04+i*.013);ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(pad,h);ctx.lineTo(pad,w*.55);ctx.bezierCurveTo(pad,-w*.06,w-pad,-w*.06,w-pad,w*.55);ctx.lineTo(w-pad,h);ctx.stroke();}ctx.restore();}
   if(p.ornament&&!['celestial','marigold'].includes(p.decoration))emblem(ctx,w,h,accent);
 }
 export const fontFamily=font=>font==='arabic'?'"Amiri", serif':font==='sans'?'"DM Sans", "Amiri", Arial, sans-serif':font==='script'?'"Snell Roundhand", "Amiri", "URW Chancery L", cursive':'"Cormorant Garamond", "Amiri", Georgia, serif';
@@ -73,7 +73,8 @@ export function drawPage(canvas,project,page,{width=800,time=0,guest=null,select
   const ctx=canvas.getContext('2d');ctx.setTransform(1,0,0,1,0,0);ctx.clearRect(0,0,width,height);const w=800,h=800*height/width;ctx.scale(width/800,width/800);ctx.fillStyle=page.background;ctx.fillRect(0,0,w,h);
   const asset=project.assets.find(a=>a.id===page.mediaId),theme=TEMPLATES.find(t=>t.id===page.template);let source=null;
   if(asset?.type==='video')source=assetMedia.get(asset.id);else if(asset?.type==='image'){const promise=imageCache.get(asset.src);source=promise?._image;}else if(theme?.asset)source=imageCache.get(theme.asset)?._image;
-  if(source&&(source.naturalWidth||source.videoWidth)){
+  const adjustableFrame=(!asset&&page.decoration==='royal')||(asset?.kind==='frame'&&asset.frameStyle==='ornate');
+  if(source&&(source.naturalWidth||source.videoWidth)&&(!adjustableFrame||page.border)){
     if((!asset&&page.decoration==='royal')||(asset?.frameStyle==='ornate'&&asset.type==='image'&&page.mediaFit==='frame'))drawFrame(ctx,source,w,h);
     else{const sw=source.naturalWidth||source.videoWidth,sh=source.naturalHeight||source.videoHeight;const scale=(page.mediaFit==='contain'&&asset?Math.min:Math.max)(w/sw,h/sh);ctx.drawImage(source,(w-sw*scale)/2,(h-sh*scale)/2,sw*scale,sh*scale);}
   }

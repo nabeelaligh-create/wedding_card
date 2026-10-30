@@ -1,0 +1,11 @@
+{
+  "name": "mehfil-invitation-studio",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "python3 -m http.server 5173 --bind 127.0.0.1",
+    "build": "node scripts/build.mjs",
+    "test": "node --test tests/*.test.js",
+    "check": "node --check src/app.js && node --check src/render.js && node --check src/data.js && node --check src/export.js && node --check src/music.js && node --check scripts/build.mjs"
+  }
+}

@@ -1,0 +1,17 @@
+.DS_Store
+node_modules/
+test-results/
+*.zip
+dist/
+/mehfil-github-pages/
+/pages-deployed.jpg
+/transition-deployment.jpg
+/github-cli-authorization.png
+/editor-styling.png
+# Original personal samples are kept locally and excluded from the public repository.
+Hoda Card.jpeg
+caard_maker.ipynb
+firstframe.png
+first.png
+frame1.png
+bismillah-calligraphy-is-a-simple-design-in-black-color-isolated-on-a-white-background-free-vector.jpg
