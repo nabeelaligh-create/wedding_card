@@ -59,7 +59,7 @@ function decoration(ctx,p,w,h,t=0){const {accent,ink}=p;if(p.decoration==='royal
   if(p.decoration==='arches'&&p.border){ctx.save();ctx.strokeStyle=accent;ctx.globalAlpha=.5;for(let i=0;i<4;i++){const pad=w*(.04+i*.013);ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(pad,h);ctx.lineTo(pad,w*.55);ctx.bezierCurveTo(pad,-w*.06,w-pad,-w*.06,w-pad,w*.55);ctx.lineTo(w-pad,h);ctx.stroke();}ctx.restore();}
   if(p.ornament&&!['celestial','marigold'].includes(p.decoration))emblem(ctx,w,h,accent);
 }
-export const fontFamily=font=>font==='arabic'?'"Amiri", serif':font==='sans'?'"DM Sans", "Amiri", Arial, sans-serif':font==='allura'?'"Allura", "Amiri", cursive':font==='greatvibes'?'"Great Vibes", "Amiri", cursive':font==='parisienne'?'"Parisienne", "Amiri", cursive':font==='script'?'"Snell Roundhand", "Amiri", "URW Chancery L", cursive':'"Cormorant Garamond", "Amiri", Georgia, serif';
+export const fontFamily=font=>font==='arabic'?'"Amiri", serif':font==='sans'?'"DM Sans", "Amiri", Arial, sans-serif':font==='allura'?'"Allura", "Amiri", cursive':font==='greatvibes'?'"Great Vibes", "Amiri", cursive':font==='parisienne'?'"Parisienne", "Amiri", cursive':font==='alexbrush'?'"Alex Brush", "Amiri", cursive':font==='pinyonscript'?'"Pinyon Script", "Amiri", cursive':font==='sacramento'?'"Sacramento", "Amiri", cursive':font==='tangerine'?'"Tangerine", "Amiri", cursive':font==='arizonia'?'"Arizonia", "Amiri", cursive':font==='script'?'"Snell Roundhand", "Amiri", "URW Chancery L", cursive':'"Cormorant Garamond", "Amiri", Georgia, serif';
 function drawFrame(ctx,source,w,h){
   // Nine-slice the empty artwork: corners keep their proportions in every card shape.
   const sw=source.naturalWidth,sh=source.naturalHeight,corner=Math.min(w,h)*.14;

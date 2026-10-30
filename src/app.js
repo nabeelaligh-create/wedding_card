@@ -322,5 +322,5 @@ modal.addEventListener('click',async e=>{
   if(e.target.closest('#start-bulk'))await runExport(true);
 });
 
-async function init(){try{await initDB();await Promise.all(['16px \"Cormorant Garamond\"','italic 16px \"Cormorant Garamond\"','16px \"DM Sans\"','42px \"Amiri\"'].map(font=>document.fonts.load(font)));await document.fonts.ready;await Promise.all(TEMPLATES.filter(t=>t.asset).map(t=>loadImage(t.asset)));await readyImages(project);renderOriginals();renderUploaded();redraw({templates:true});}catch(error){renderOriginals();renderUploaded();redraw({templates:true});toast(`Some media could not load: ${error.message}`);}}
+async function init(){try{await initDB();await Promise.all(['16px \"Cormorant Garamond\"','italic 16px \"Cormorant Garamond\"','16px \"DM Sans\"','42px \"Amiri\"','16px \"Allura\"','16px \"Great Vibes\"','16px \"Parisienne\"','16px \"Alex Brush\"','16px \"Pinyon Script\"','16px \"Sacramento\"','16px \"Tangerine\"','16px \"Arizonia\"'].map(font=>document.fonts.load(font)));await document.fonts.ready;await Promise.all(TEMPLATES.filter(t=>t.asset).map(t=>loadImage(t.asset)));await readyImages(project);renderOriginals();renderUploaded();redraw({templates:true});}catch(error){renderOriginals();renderUploaded();redraw({templates:true});toast(`Some media could not load: ${error.message}`);}}
 init();

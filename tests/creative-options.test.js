@@ -5,11 +5,11 @@ import {fontFamily} from '../src/render.js';
 import {TRACKS} from '../src/music.js';
 
 test('new script fonts survive project import and apply to all pages',()=>{
-  for(const id of ['allura','greatvibes','parisienne']){
+  for(const id of ['allura','greatvibes','parisienne','alexbrush','pinyonscript','sacramento','tangerine','arizonia']){
     const project=defaultProject();
     applyPageStyles(project,project.pages.map(p=>p.id),{font:id});
     assert.equal(validateProject(JSON.parse(JSON.stringify(project))).pages[0].blocks[0].font,id);
-    assert.match(fontFamily(id),/Allura|Great Vibes|Parisienne/);
+    assert.match(fontFamily(id),/Allura|Great Vibes|Parisienne|Alex Brush|Pinyon Script|Sacramento|Tangerine|Arizonia/);
   }
 });
 

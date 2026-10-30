@@ -1,5 +1,5 @@
 import {TRACKS} from './music.js';
-export const FONT_OPTIONS=[['serif','Elegant serif'],['sans','Clean & modern'],['script','Handwritten · classic'],['allura','Allura · graceful handwriting'],['greatvibes','Great Vibes · formal calligraphy'],['parisienne','Parisienne · flowing script']];
+export const FONT_OPTIONS=[['serif','Elegant serif'],['sans','Clean & modern'],['script','Handwritten · classic'],['allura','Allura · graceful handwriting'],['greatvibes','Great Vibes · formal calligraphy'],['parisienne','Parisienne · flowing script'],['alexbrush','Alex Brush · elegant strokes'],['pinyonscript','Pinyon Script · formal cursive'],['sacramento','Sacramento · relaxed handwriting'],['tangerine','Tangerine · delicate calligraphy'],['arizonia','Arizonia · expressive script']];
 export const TEMPLATES = [
   {id:'gulmohar',name:'Gulmohar',category:'floral',label:'Floral · warm & timeless',background:'#fff8ec',ink:'#5d694c',accent:'#b46843',decoration:'botanical'},
   {id:'royal',name:'Royal evening',category:'classic',label:'Classic · navy & gold',background:'#071e2a',ink:'#bca06a',accent:'#bca06a',decoration:'royal',asset:'./backg.png'},
