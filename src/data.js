@@ -1,3 +1,5 @@
+import {TRACKS} from './music.js';
+export const FONT_OPTIONS=[['serif','Elegant serif'],['sans','Clean & modern'],['script','Handwritten · classic'],['allura','Allura · graceful handwriting'],['greatvibes','Great Vibes · formal calligraphy'],['parisienne','Parisienne · flowing script']];
 export const TEMPLATES = [
   {id:'gulmohar',name:'Gulmohar',category:'floral',label:'Floral · warm & timeless',background:'#fff8ec',ink:'#5d694c',accent:'#b46843',decoration:'botanical'},
   {id:'royal',name:'Royal evening',category:'classic',label:'Classic · navy & gold',background:'#071e2a',ink:'#bca06a',accent:'#bca06a',decoration:'royal',asset:'./backg.png'},
@@ -31,7 +33,7 @@ export function applyPageStyles(project,pageIds,styles){
     for(const key of ['background','ink','accent','border','ornament','animation'])if(Object.hasOwn(styles,key))p[key]=styles[key];
     for(const b of p.blocks){
       if(b.hidden)continue;
-      if(['serif','sans','script'].includes(styles.font)&&b.font!=='arabic'&&!/[\u0600-\u06ff]/.test(b.text))b.font=styles.font;
+      if(FONT_OPTIONS.some(([id])=>id===styles.font)&&b.font!=='arabic'&&!/[\u0600-\u06ff]/.test(b.text))b.font=styles.font;
       if(Number.isFinite(styles.sizeFactor)&&styles.sizeFactor>0)b.size=Math.min(160,Math.max(8,Math.round(b.size*styles.sizeFactor*10)/10));
     }
   }
@@ -189,7 +191,7 @@ export function validateProject(input){
   result.pages=input.pages.map(p=>{const out=newPage(p.template);out.id=uid();out.kind=['invitation','cover','schedule','rsvp','blessing','blank'].includes(p.kind)?p.kind:'invitation';out.name=String(p.name||'Your page').slice(0,80);out.occasion=String(p.occasion||'custom').slice(0,30);for(const c of ['background','ink','accent'])if(safeColor(p[c]))out[c]=p[c];
     for(const k of ['border','ornament'])out[k]=p[k]!==false;out.duration=Math.min(20,Math.max(2,Number(p.duration)||6));out.transition=['fade','slide','none'].includes(p.transition)?p.transition:'fade';out.animation=['gentle','sparkle','none'].includes(p.animation)?p.animation:'gentle';out.mediaId=assetIds.has(p.mediaId)?p.mediaId:null;out.mediaFit=['contain','frame'].includes(p.mediaFit)?p.mediaFit:'cover';out.overlay=Math.min(.9,Math.max(0,Number(p.overlay)||0));
     if(typeof p.beforeBlessingOrnament==='boolean')out.beforeBlessingOrnament=p.beforeBlessingOrnament;
-    out.blocks=(Array.isArray(p.blocks)?p.blocks:[]).slice(0,40).map(b=>block(String(b.key||'custom').slice(0,50),String(b.text??'').slice(0,2000),Math.min(.97,Math.max(.03,Number(b.y)||.5)),Math.min(160,Math.max(8,Number(b.size)||20)),b.style==='italic'?'italic':'normal',{x:Math.min(.95,Math.max(.05,Number(b.x)||.5)),align:['left','center','right'].includes(b.align)?b.align:'center',font:['serif','sans','script','arabic'].includes(b.font)?b.font:'serif',direction:['rtl','ltr'].includes(b.direction)?b.direction:'auto',color:safeColor(b.color)?b.color:'',width:Math.min(.95,Math.max(.15,Number(b.width)||.73)),hidden:b.hidden===true,...(Number.isFinite(b.beforeBlessingY)?{beforeBlessingY:Math.min(.97,Math.max(.03,b.beforeBlessingY))}:{})}));return out;});
+    out.blocks=(Array.isArray(p.blocks)?p.blocks:[]).slice(0,40).map(b=>block(String(b.key||'custom').slice(0,50),String(b.text??'').slice(0,2000),Math.min(.97,Math.max(.03,Number(b.y)||.5)),Math.min(160,Math.max(8,Number(b.size)||20)),b.style==='italic'?'italic':'normal',{x:Math.min(.95,Math.max(.05,Number(b.x)||.5)),align:['left','center','right'].includes(b.align)?b.align:'center',font:(b.font==='arabic'||FONT_OPTIONS.some(([id])=>id===b.font))?b.font:'serif',direction:['rtl','ltr'].includes(b.direction)?b.direction:'auto',color:safeColor(b.color)?b.color:'',width:Math.min(.95,Math.max(.15,Number(b.width)||.73)),hidden:b.hidden===true,...(Number.isFinite(b.beforeBlessingY)?{beforeBlessingY:Math.min(.97,Math.max(.03,b.beforeBlessingY))}:{})}));return out;});
   // Upgrade only the old built-in sample used as a standalone opening; preserve visitors' uploads.
   const upgraded=new Set();result.pages=result.pages.map((p,i)=>{
     const asset=result.assets.find(a=>a.id===p.mediaId);
@@ -198,6 +200,6 @@ export function validateProject(input){
     upgraded.add(asset.id);const opening=newBlessingPage(matchingDesign(result,neighbor));opening.duration=p.duration;return opening;
   });
   result.assets=result.assets.filter(a=>!upgraded.has(a.id)||result.pages.some(p=>p.mediaId===a.id));
-  const m=input.music||{};result.music={track:['none','petals','sitar','piano','custom'].includes(m.track)?m.track:'none',volume:Math.min(1,Math.max(0,Number(m.volume)||0)),customId:assetIds.has(m.customId)?m.customId:null};return result;
+  const m=input.music||{};result.music={track:(m.track==='custom'||TRACKS.some(t=>t.id===m.track))?m.track:'none',volume:Math.min(1,Math.max(0,Number(m.volume)||0)),customId:assetIds.has(m.customId)?m.customId:null};return result;
 }
 export function safeFilename(value){return String(value).normalize('NFKC').replace(/[^\p{L}\p{M}\p{N} _-]/gu,'').trim().replace(/\s+/g,'-').slice(0,70)||'invitation';}
